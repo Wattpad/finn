@@ -41,6 +41,6 @@ Finn is a Go module for creating workers from any message queue (e.g. RabbitMQ)
 		finn.Listen()
 	}
 
-# Dependencies:
-github.com/streadway/amqp (for RabbitMQ)
-github.com/ugorji/go (for MessagePack)
+### Dependencies:
+- github.com/streadway/amqp (for RabbitMQ)
+- github.com/ugorji/go (for MessagePack)
