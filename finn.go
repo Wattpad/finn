@@ -24,7 +24,11 @@ func AddWorker(worker GenericWorker) error {
 		return fmt.Errorf("Cannot add a worker after Finn has started.")
 	}
 
-	runner.workers = append(runner.workers, worker)
+	if runner.workers == nil {
+		runner.workers = make(map[string]GenericWorker)
+	}
+
+	runner.workers[worker.TopicName()] = worker
 
 	return nil
 }
@@ -65,7 +69,7 @@ func Listen() {
 
 	// Connect to topics for workers to listen on, then
 	// get a channel of messages from each topic
-	var streams []<-chan []byte
+	streams := make(map[string]<-chan []byte)
 	for _, worker := range runner.workers {
 
 		topic, err := runner.queue.NewTopic(worker.TopicName())
@@ -82,11 +86,11 @@ func Listen() {
 
 		LogInfo(fmt.Sprintf("Registered worker: %s", worker.Name()))
 
-		streams = append(streams, stream)
+		streams[worker.TopicName()] = stream
 	}
 
 	// Multiplex all topic streams into one channel
-	messages := multiplex(streams)
+	jobs := multiplex(streams)
 
 	waitGroup := new(sync.WaitGroup)
 	LogInfo("Listening for work...")
@@ -97,9 +101,9 @@ MainLoop:
 		case signal := <-signalChannel:
 			LogInfo(fmt.Sprintf("\nReceived signal '%v', stopping workers...", signal))
 			break MainLoop
-		case message, ok := <-messages:
+		case job, ok := <-jobs:
 			if ok {
-				worker, err := Unpack(message.data, runner.workers[message.workerId])
+				worker, err := Unpack(job.body, runner.workers[job.topic])
 				if err != nil {
 					LogError(err)
 				} else {
@@ -116,38 +120,37 @@ MainLoop:
 	waitGroup.Wait()
 }
 
-// Message represents the packed job + worker id
-type Message struct {
-	workerId int
-	data     []byte
+// Job represents the packed job + the topic it came in on
+type Job struct {
+	topic string
+	body  []byte
 }
 
 // multiplex takes multiple input channels and routes them to a single output channel
-// TODO maybe use maps for mapping workerid
-func multiplex(streams []<-chan []byte) <-chan Message {
-	messages := make(chan Message)
+func multiplex(streams map[string]<-chan []byte) <-chan Job {
+	jobs := make(chan Job)
 
 	// Range over all input channels
-	for workerId, stream := range streams {
+	for topic, stream := range streams {
 		// Re-declaration is necessary, otherwise goroutines will all share the same variables
-		workerId := workerId
+		topic := topic
 		stream := stream
 		go func() {
-			// Range over messages from input channel, outputting them
+			// Range over messages from input channel, outputting them as a job
 			for message := range stream {
-				messages <- Message{data: message, workerId: workerId}
+				jobs <- Job{body: message, topic: topic}
 			}
 		}()
 	}
 
-	return messages
+	return jobs
 }
 
 // Runner handles running/retrying workers
 type Runner struct {
 	queue   GenericQueue
 	config  QueueConfig
-	workers []GenericWorker
+	workers map[string]GenericWorker
 	started bool
 }
 
