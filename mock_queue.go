@@ -50,7 +50,7 @@ func (self *MockTopic) Close() error {
 }
 
 // Put is a non-blocking testing function that adds a message to the stream
-func (self *MockTopic) Put(message []byte) {
+func (self *MockTopic) Put(message []byte) error {
 	if self.stream == nil {
 		self.stream = make(chan []byte)
 	}
@@ -58,6 +58,8 @@ func (self *MockTopic) Put(message []byte) {
 	go func() {
 		self.stream <- message
 	}()
+
+	return nil
 }
 
 // PutWorker is a non-blocking testing function that adds a worker to the stream

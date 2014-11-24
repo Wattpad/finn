@@ -203,6 +203,21 @@ func (self *RabbitTopic) reconnect() error {
 	return nil
 }
 
+// Put sends a message out on the topic
+func (self *RabbitTopic) Put(message []byte) error {
+	err := self.channel.Publish(
+		"",              // exchange
+		self.queue.Name, // routing key
+		false,           // mandatory
+		false,           // immediate
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        message,
+		})
+
+	return err
+}
+
 // Close shuts down the topic listener, as well as closes the output stream
 func (self *RabbitTopic) Close() error {
 	self.running = false

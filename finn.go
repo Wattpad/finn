@@ -11,7 +11,6 @@ import (
 )
 
 /* TODO
-- Add ability to put a job into a topic on the queue
 - Write tests
 - Code review
 - Clean up Start() and Runner{} (and rest of code?)

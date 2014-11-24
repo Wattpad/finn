@@ -20,6 +20,9 @@ type GenericTopic interface {
 	// Stream returns a channel with a stream of messages from the topic
 	Stream() (<-chan []byte, error)
 
+	// Put sends a message on the topic
+	Put([]byte) error
+
 	// Close shuts down the connection to the topic
 	Close() error
 }
