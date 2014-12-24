@@ -1,9 +1,7 @@
-finn
-========
+/*
+Package finn is a framework for easily creating workers that listen to jobs on a message queue (e.g. RabbitMQ, Kafka)
 
-Finn is a Go module for creating workers from any message queue (e.g. RabbitMQ)
-
-### Sample Worker
+The following is an example of a worker that we can write.
 
 	package workers
 
@@ -29,7 +27,8 @@ Finn is a Go module for creating workers from any message queue (e.g. RabbitMQ)
 		// do something
 	}
 
-### Sample main()
+Here we register our worker with finn, then set the queue and queue configuration.
+After that we start finn up.
 
 	package main
 
@@ -40,7 +39,5 @@ Finn is a Go module for creating workers from any message queue (e.g. RabbitMQ)
 		finn.SetQueue(&finn.RabbitQueue{}, finn.QueueConfig{"host": "localhost"})
 		finn.Listen()
 	}
-
-### Dependencies:
-- github.com/streadway/amqp (for RabbitMQ)
-- github.com/ugorji/go (for MessagePack)
+*/
+package finn
