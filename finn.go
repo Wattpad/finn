@@ -11,9 +11,14 @@ import (
 )
 
 /* TODO
+- Move Unpack & Pack into worker, this will allow the worker to define its own message format.
+	- Put default Unpack & Pack (msgpack for now) into BaseWorker.
 - Write tests
 - Code review
 - Clean up Start() and Runner{} (and rest of code?)
+- Create a Kafka queue implementation, based on sarama
+	- Set consumer group via config
+	- Set partition via config
 */
 
 var runner = Runner{}
